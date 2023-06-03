@@ -1,0 +1,87 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "AWS CloudFormation template to create a VPC with subnets and an internet gateway",
+    "Resources": {
+      "VPC": {
+        "Type": "AWS::EC2::VPC",
+        "Properties": {
+          "CidrBlock": "10.0.0.0/24",
+          "EnableDnsSupport": true,
+          "EnableDnsHostnames": true,
+          "Tags": [
+            { "Key": "Name", "Value": "MyVPC" }
+          ]
+        }
+      },
+      "InternetGateway": {
+        "Type": "AWS::EC2::InternetGateway",
+        "Properties": {
+          "Tags": [
+            { "Key": "Name", "Value": "MyInternetGateway" }
+          ]
+        }
+      },
+      "GatewayAttachment": {
+        "Type": "AWS::EC2::VPCGatewayAttachment",
+        "Properties": {
+          "VpcId": { "Ref": "VPC" },
+          "InternetGatewayId": { "Ref": "InternetGateway" }
+        }
+      },
+      "SubnetGroup1": {
+        "Type": "AWS::EC2::Subnet",
+        "Properties": {
+          "VpcId": { "Ref": "VPC" },
+          "CidrBlock": "10.0.0.0/25",
+          "AvailabilityZone": "ap-southeast-2a",
+          "Tags": [
+            { "Key": "Name", "Value": "SubnetGroup1" }
+          ]
+        }
+      },
+      "SubnetGroup2": {
+        "Type": "AWS::EC2::Subnet",
+        "Properties": {
+          "VpcId": { "Ref": "VPC" },
+          "CidrBlock": "10.0.0.128/25",
+          "AvailabilityZone": "ap-southeast-2b",
+          "Tags": [
+            { "Key": "Name", "Value": "SubnetGroup2" }
+          ]
+        }
+      },
+      "SubnetGroup1RouteTableAssociation": {
+        "Type": "AWS::EC2::SubnetRouteTableAssociation",
+        "Properties": {
+          "SubnetId": { "Ref": "SubnetGroup1" },
+          "RouteTableId": { "Ref": "MainRouteTable" }
+        }
+      },
+      "SubnetGroup2RouteTableAssociation": {
+        "Type": "AWS::EC2::SubnetRouteTableAssociation",
+        "Properties": {
+          "SubnetId": { "Ref": "SubnetGroup2" },
+          "RouteTableId": { "Ref": "MainRouteTable" }
+        }
+      },
+      "MainRouteTable": {
+        "Type": "AWS::EC2::RouteTable",
+        "Properties": {
+          "VpcId": { "Ref": "VPC" },
+          "Tags": [
+            { "Key": "Name", "Value": "MainRouteTable" }
+          ]
+        }
+      },
+      "InternetRoute": {
+        "Type": "AWS::EC2::Route",
+        "DependsOn": "GatewayAttachment",
+        "Properties": {
+          "RouteTableId": { "Ref": "MainRouteTable" },
+          "DestinationCidrBlock": "0.0.0.0/0",
+          "GatewayId": { "Ref": "InternetGateway" }
+        }
+      }
+    }
+  }
+  
